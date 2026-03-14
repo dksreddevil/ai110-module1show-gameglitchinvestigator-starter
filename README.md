@@ -25,13 +25,39 @@ It wrote the code, ran away, and now the game is unplayable.
 
 ## 📝 Document Your Experience
 
-- [ ] Describe the game's purpose.
-- [ ] Detail which bugs you found.
-- [ ] Explain what fixes you applied.
+**Game purpose:** Glitchy Guesser is a number-guessing game where the player tries to guess a secret number within a limited number of attempts. The difficulty setting controls the range (Easy: 1–20, Normal: 1–100, Hard: 1–200) and the number of allowed attempts. Correct guesses score points; wrong guesses deduct points, with the bonus decreasing the more attempts it takes to win.
+
+**Bugs found:**
+
+| # | Location | Bug |
+|---|----------|-----|
+| 1 | `app.py` | `st.session_state.attempts` initialized to `1` instead of `0` — first load showed one attempt already used |
+| 2 | `app.py` | Info bar range hardcoded to `"1 and 100"` regardless of selected difficulty |
+| 3 | `app.py` | `st.session_state.attempts` incremented before input was validated — invalid guesses wasted a turn |
+| 4 | `app.py` | On even-numbered attempts, the secret was cast to a `str`, making every even comparison fail silently |
+| 5 | `app.py` | "New Game" did not reset `status`, so a finished game stayed locked even after clicking the button |
+| 6 | `app.py` | "New Game" used `random.randint(1, 100)` instead of the difficulty-based `low`/`high` range |
+| 7 | `logic_utils.py` | Hard difficulty range was `1–50` — easier than Normal's `1–100` |
+| 8 | `logic_utils.py` | `check_guess` hint messages were swapped: "Too High" said "Go HIGHER!" and vice versa |
+| 9 | `logic_utils.py` | `update_score` used `attempt_number + 1`, over-penalizing every win by one extra attempt |
+| 10 | `logic_utils.py` | `update_score` awarded `+5` points on even-numbered wrong guesses instead of always deducting 5 |
+
+**Fixes applied:**
+
+- Moved all game logic (`get_range_for_difficulty`, `parse_guess`, `check_guess`, `update_score`) out of `app.py` and into `logic_utils.py` so it could be unit-tested with pytest.
+- Fixed Hard difficulty range to `1–200` in `get_range_for_difficulty`.
+- Corrected the swapped hint messages in `check_guess` (`Too High` → "Go LOWER!", `Too Low` → "Go HIGHER!").
+- Removed the `attempt_number + 1` off-by-one from `update_score` win formula.
+- Replaced the even/odd `+5` scoring branch with a consistent `−5` deduction for all wrong guesses.
+- Fixed `attempts` initialization to `0` and moved the increment inside the valid-parse branch.
+- Removed the even-attempt string-cast sabotage from the submit handler.
+- Made the info bar range and New Game reset use the dynamic `low`/`high` variables.
+- Added `status = "playing"` to the New Game reset so finished games can restart.
 
 ## 📸 Demo
 
-- [ ] [Insert a screenshot of your fixed, winning game here]
+![Pytest results showing all tests passing](test_results.png)
+![The UI of the application](app_ui.png)
 
 ## 🚀 Stretch Features
 
